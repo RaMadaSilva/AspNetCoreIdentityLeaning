@@ -17,13 +17,14 @@ namespace AspNetCoreIdentityDemo.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? ReturnUrl = null)
         {
+            ViewData["ReturnUrl"] = ReturnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, string? ReturnUrl)
         {
             if (ModelState.IsValid)
             {
@@ -31,7 +32,16 @@ namespace AspNetCoreIdentityDemo.Controllers
                         .PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
 
                 if (result.Succeeded)
-                    return RedirectToAction(nameof(HomeController.Index), "Home");
+                {
+                    if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+                    {
+                        return Redirect(ReturnUrl);
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(HomeController.Index), "Home");
+                    }
+                }
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Login Invalido");
